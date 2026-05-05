@@ -1,0 +1,15 @@
+<%- include("templates/header") %>
+
+    <h3>Sign-Up</h3> <br><br>
+
+    <% if (error) { %>
+        <p style="color: red"><%= error %></p>
+    <% } %>
+    <form action='/recordUser' method='post'>
+    <input name='username' type='text' placeholder='username'> <br><br>
+    <input name='email' type='email' placeholder='email'> <br><br>
+    <input name='password' type='password' placeholder='password'> <br><br>
+    <button type="submit">Submit</button>
+    </form>
+
+<%- include("templates/footer") %>

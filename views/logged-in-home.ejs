@@ -1,0 +1,12 @@
+
+<%- include("templates/header") %>
+
+    <h1>Welcome, <%= username %>!</h1>
+    <form action='/members' method='get'>
+    <button type='submit'> Go to members area </button>
+    </form>
+    <form action='/logout' method='get'>
+    <button type='submit'>Logout</button>
+    </form>
+
+<%- include("templates/footer") %>

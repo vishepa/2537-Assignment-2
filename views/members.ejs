@@ -1,0 +1,10 @@
+<%- include("templates/header") %>
+
+   <h1>Members Only Area</h1>
+   <p>Hello, <%= username %>!</p>
+   <img src="<%= image %>" alt="Random Image" style="max-width:300px;"><br><br>
+   <form action="/logout" method="get" style="display:inline">
+       <button type="submit">Log Out</button>
+    </form>
+
+<%- include("templates/footer") %>

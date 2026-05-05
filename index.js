@@ -24,6 +24,8 @@ const userCollection = database.db(process.env.MONGODB_USER_DATABASE).collection
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
+app.set('view engine', 'ejs');
+
 
 var mongoStore = MongoStore.create({
 
@@ -45,14 +47,7 @@ app.get('/', (req, res) => {
 
   if (!req.session.authenticated) {
 
-    res.send(`
-      <form action="/login" method="get" style="display:inline">
-        <button type="submit">Login</button>
-      </form>
-      <form action="/signup" method="get" style="display:inline">
-        <button type="submit">Signup</button>
-      </form>
-    `);
+    res.render('home');
   } else {
     res.redirect('/loggedin');
   }
@@ -62,16 +57,7 @@ app.get('/login', (req,res) => {
 
   const errorMsg = req.query.error ? `<p style="color:red">${req.query.error}</p>` : '';
 
-    let loginForm = `
-    <h3>Log-In</h3> <br><br>
-    ${errorMsg}
-    <form action='/loggingin' method='post'>
-    <input name='username' type='text' placeholder='username'>
-    <input name='password' type='password' placeholder='password'>
-    <button type="submit">Submit</button>
-    </form>
-    `;
-    res.send(loginForm);
+    res.render('login', { error: req.query.error});
 });
 
 
@@ -116,26 +102,13 @@ app.get('/loggedin', (req,res) => {
     return;
   }
 
-  let loggedInMsg = `
 
-    <h1>Welcome, ${req.session.username}!</h1>
-    <form action='/members' method='get'>
-    <button type='submit'> Go to members area </button>
-    </form>
-    <form action='/logout' method='get'>
-    <button type='submit'>Logout</button>
-    </form>
-  `;
-
-  res.send(loggedInMsg);
+  res.render('logged-in-home', { username: req.session.username});
 
 });
 
 app.get('/logout', (req,res) => {
   req.session.destroy();
-  let loggedOutMsg = `
-  <p>You are now logged out.</p>
-  `;
 
   res.redirect('/');
 
@@ -143,20 +116,20 @@ app.get('/logout', (req,res) => {
 
 app.get('/signup', (req,res) => {
 
-    const errorMsg = req.query.error ? `<p style="color:red">${req.query.error}</p>` : '';
+    // const errorMsg = req.query.error ? `<p style="color:red">${req.query.error}</p>` : '';
 
-    let signupForm = `
-    <h3>Sign-Up</h3> <br><br>
+    // let signupForm = `
+    // <h3>Sign-Up</h3> <br><br>
 
-    ${errorMsg}
-    <form action='/recordUser' method='post'>
-    <input name='username' type='text' placeholder='username'> <br><br>
-    <input name='email' type='email' placeholder='email'> <br><br>
-    <input name='password' type='password' placeholder='password'> <br><br>
-    <button type="submit">Submit</button>
-    </form>
-    `;
-    res.send(signupForm);
+    // ${errorMsg}
+    // <form action='/recordUser' method='post'>
+    // <input name='username' type='text' placeholder='username'> <br><br>
+    // <input name='email' type='email' placeholder='email'> <br><br>
+    // <input name='password' type='password' placeholder='password'> <br><br>
+    // <button type="submit">Submit</button>
+    // </form>
+    // `;
+    res.render('signup', { error: req.query.error});
 });
 
 app.post('/recordUser', async (req,res) => {
@@ -211,21 +184,13 @@ app.get('/members', (req,res) => {
   const images = ['bingzoid.png', 'ben.png', 'glup.png'];
   const randomImage = images[Math.floor(Math.random() * images.length)];
 
-  res.send(`
-    <h1>Members Only Area</h1>
-    <p>Hello, ${req.session.username}!</p>
-
-    <img src="/${randomImage}" alt="Random Image" style="max-width:300px;"><br><br>
-    <form action="/logout" method="get" style="display:inline">
-        <button type="submit">Log Out</button>
-      </form>
-  `);
+  res.render('members', { username: req.session.username, image: randomImage});
 
 });
 
 app.use((req, res) => {
   res.status(404);
-  res.send('404 - Page Not Found');
+  res.render('pnf');
 });
 
 app.listen(port, () => {
