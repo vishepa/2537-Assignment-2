@@ -43,6 +43,38 @@ app.use(session({
     saveUninitialized: true
 }));
 
+function isValidSession(req) {
+  if (req.session.authenticated) {
+    return true;
+  }
+  return false;
+}
+
+function sessionValidationMiddleware(req, res, next) {
+  if (isValidSession(req)) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+}
+
+function isAdmin(req) {
+  if (req.session.user_type === 'admin') {
+    return true;
+  }
+  return false;
+}
+
+function adminAuthorizationMiddleware(req, res, next) {
+  if (!isAdmin(req)) {
+    res.status(403);
+    res.render("errorMessage", {error: "Not Authorized"});
+    return;
+  } else {
+    next();
+  }
+}
+
 app.get('/', (req, res) => {
 
   if (!req.session.authenticated) {
@@ -74,7 +106,7 @@ app.post('/loggingin', async (req,res) => {
     return res.redirect(`/login?error=${encodeURIComponent('Invalid username or password')}`);
   }
 
-  const results = await userCollection.find({username: username}).project({username: 1, password: 1, _id: 0}).toArray();
+  const results = await userCollection.find({username: username}).project({username: 1, password: 1, user_type: 1, _id: 1}).toArray();
 
   console.log(results);
   if (results.length != 1) {
@@ -86,6 +118,7 @@ app.post('/loggingin', async (req,res) => {
     console.log('password correct');
     req.session.authenticated = true; 
     req.session.username = username;
+    req.session.user_type = results[0].user_type;
     req.session.cookie.maxAge = 60 * 60 * 1000;
     res.redirect('loggedin');
   } else {
@@ -95,13 +128,9 @@ app.post('/loggingin', async (req,res) => {
 
 });
 
+app.use('/loggedin', sessionValidationMiddleware);
+
 app.get('/loggedin', (req,res) => {
-
-  if (!req.session.authenticated) {
-    res.redirect('/login');
-    return;
-  }
-
 
   res.render('logged-in-home', { username: req.session.username});
 
@@ -159,11 +188,12 @@ app.post('/recordUser', async (req,res) => {
 
   let encrptedPassword = await bcrypt.hash(password, 10);
 
-  await userCollection.insertOne({username: username, password: encrptedPassword, email: email});
+  await userCollection.insertOne({username: username, password: encrptedPassword, email: email, user_type: 'user'});
 
     req.session.authenticated = true;
     req.session.email = email;
     req.session.username = username;
+    req.session.user_type = 'user';
     req.session.cookie.maxAge = 60 * 60 * 1000;
     res.redirect('/loggedin');
 
@@ -181,10 +211,43 @@ app.get('/members', (req,res) => {
     return;
   }
 
-  const images = ['bingzoid.png', 'ben.png', 'glup.png'];
-  const randomImage = images[Math.floor(Math.random() * images.length)];
+  res.render('members', { username: req.session.username});
 
-  res.render('members', { username: req.session.username, image: randomImage});
+});
+
+app.get('/admin', sessionValidationMiddleware, adminAuthorizationMiddleware, async (req,res) => {
+
+  const result = await userCollection.find().project({username: 1, user_type: 1, _id: 1}).toArray();
+
+  res.render('admin', { users: result});
+
+});
+
+app.post('/admin/:action', sessionValidationMiddleware, adminAuthorizationMiddleware, async (req,res) => {
+
+  const action = req.params.action;
+
+  const usernameSchema = Joi.string().alphanum().min(3).max(30).required();
+
+  if ( usernameSchema.validate(req.body.username).error ) {
+    res.status(400);
+    return res.render("errorMessage", {error: "Invalid username"});
+  }
+
+  const actionSchema = Joi.string().valid('promote', 'demote').required();
+  if ( actionSchema.validate(action).error ) {
+    res.status(400);
+    return res.render("errorMessage", {error: "Invalid action"});
+  }
+
+  const newType = action === 'promote' ? 'admin' : 'user';
+
+  await userCollection.updateOne(
+    { username: req.body.username },
+    { $set: { user_type: newType } }
+  )
+
+  res.redirect('/admin');
 
 });
 

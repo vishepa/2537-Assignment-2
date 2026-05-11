@@ -1,8 +1,20 @@
 <%- include("templates/header") %>
-    <form action="/login" method="get" style="display:inline">
-        <button type="submit">Login</button>
-    </form>
-    <form action="/signup" method="get" style="display:inline">
-        <button type="submit">Signup</button>
-    </form>
+
+<section class="text-center py-12 sm:py-20">
+    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+        Welcome to MyApp
+    </h1>
+    <p class="text-lg text-slate-600 max-w-xl mx-auto mb-8">
+        Sign up or log in to access the members area and exclusive content.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <a href="/login" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition">
+            Log In
+        </a>
+        <a href="/signup" class="w-full sm:w-auto px-6 py-3 bg-white hover:bg-slate-100 text-slate-800 font-semibold rounded-lg border border-slate-300 shadow-sm transition">
+            Sign Up
+        </a>
+    </div>
+</section>
+
 <%- include("templates/footer") %>
