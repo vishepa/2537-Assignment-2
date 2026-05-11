@@ -68,7 +68,7 @@ function isAdmin(req) {
 function adminAuthorizationMiddleware(req, res, next) {
   if (!isAdmin(req)) {
     res.status(403);
-    res.render("errorMessage", {error: "Not Authorized"});
+    res.render("errorMessage", {error: "Not Authorized ( 403 )"});
     return;
   } else {
     next();
@@ -169,7 +169,7 @@ app.post('/recordUser', async (req,res) => {
 
   const schema = Joi.object({
     username: Joi.string().alphanum().min(3).max(30).required(),
-    password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
+    password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9!@#$%^&*]{3,30}$')).required(),
     email: Joi.string().email().required()
   });
 
@@ -231,13 +231,13 @@ app.post('/admin/:action', sessionValidationMiddleware, adminAuthorizationMiddle
 
   if ( usernameSchema.validate(req.body.username).error ) {
     res.status(400);
-    return res.render("errorMessage", {error: "Invalid username"});
+    return res.render("errorMessage", {error: "Invalid username ( 400 )"});
   }
 
   const actionSchema = Joi.string().valid('promote', 'demote').required();
   if ( actionSchema.validate(action).error ) {
     res.status(400);
-    return res.render("errorMessage", {error: "Invalid action"});
+    return res.render("errorMessage", {error: "Invalid action ( 400 )"});
   }
 
   const newType = action === 'promote' ? 'admin' : 'user';
